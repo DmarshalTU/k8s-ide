@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vscode-admin
+  namespace: vscode
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: vscode-admin
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vscode-admin
+subjects:
+- kind: ServiceAccount
+  name: vscode-admin
+  namespace: vscode
+roleRef:
+  kind: ClusterRole
+  name: vscode-admin
+  apiGroup: rbac.authorization.k8s.io

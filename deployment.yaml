@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vscode-server
+  namespace: vscode
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vscode-server
+  template:
+    metadata:
+      labels:
+        app: vscode-server
+    spec:
+      serviceAccountName: vscode-admin
+      containers:
+      - name: code-server
+        image: dmarshaltu/vscode-k8s:0.0.1
+        env:
+        - name: PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: vscode-secret
+              key: password
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: vscode-data
+          mountPath: /home/coder/project
+        - name: vscode-data
+          mountPath: /home/coder/.local/share/code-server
+          subPath: code-server
+        - name: vscode-data
+          mountPath: /home/coder/.config/code-server
+          subPath: config
+        - name: vscode-data
+          mountPath: /home/coder/.ssh
+          subPath: ssh
+        resources:
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+      volumes:
+      - name: vscode-data
+        persistentVolumeClaim:
+          claimName: vscode-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vscode-service
+  namespace: vscode
+spec:
+  selector:
+    app: vscode-server
+  ports:
+  - port: 80
+    targetPort: 8080
+  type: ClusterIP 
